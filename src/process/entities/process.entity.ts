@@ -5,10 +5,13 @@ export class Process {
     burstTime: number
     remainingTime: number
     status: ProcessStatus
+    timeArrive: number
 
-    constructor(burstTime: number) {
+    constructor(id: number, timeArrive: number, burstTime: number) {
+        this.id = id
         this.burstTime = burstTime
         this.remainingTime = burstTime
         this.status = ProcessStatus.READY
+        this.timeArrive = timeArrive
     }
 }

@@ -4,6 +4,7 @@ import { ProcessModule } from '../process/process.module';
 
 @Module({
   providers: [CpuService],
-  imports: [ProcessModule]
+  imports: [ProcessModule],
+  exports: [CpuService]
 })
 export class CpuModule {}

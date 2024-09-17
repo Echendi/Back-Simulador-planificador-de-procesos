@@ -13,8 +13,8 @@ export class CpuService {
         this.cpu = new Cpu()
     }
 
-    assignProcess(processId: number) {
-        const process = this.processService.changeStatus(processId, ProcessStatus.RUNNING)
+    assignProcess(process: Process) {
+        process.status = ProcessStatus.RUNNING
         this.cpu.runningProcess = process
         this.cpu.status = CpuStatus.BUSY
     }
