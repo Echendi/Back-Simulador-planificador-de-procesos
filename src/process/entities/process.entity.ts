@@ -1,3 +1,4 @@
+import { CreateProcessInput } from "../dto/create-process.input";
 import { ProcessStatus } from "./process-status.enum";
 
 export class Process {
@@ -6,8 +7,13 @@ export class Process {
     remainingTime: number
     status: ProcessStatus
     timeArrive: number
+    completionTime?: number
+    turnaroundTime?: number
+    waitingTime?: number
+    normalizedTurnaroundTime?: number
 
-    constructor(id: number, timeArrive: number, burstTime: number) {
+    constructor(input: CreateProcessInput) {
+        const { id, burstTime, timeArrive } = input
         this.id = id
         this.burstTime = burstTime
         this.remainingTime = burstTime

@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, NotFound
 import { ProcessStatus } from './entities/process-status.enum';
 import { Process } from './entities/process.entity';
 import { SchedulerType } from '../scheduler/entities/escheduler-type.enum';
+import { CreateProcessInput } from './dto/create-process.input';
 
 @Injectable()
 export class ProcessService {
@@ -13,8 +14,13 @@ export class ProcessService {
         return process
     }
 
-    setProcessList(processList: Process[]){
-        this.processList = processList
+    setProcessList(processList: CreateProcessInput[], type: SchedulerType) {
+        this.processList = []
+        for (const createprocessInput of processList) {
+            this.processList.push(new Process(createprocessInput))
+        }
+        this.processList = this.sortProcessList(type)
+        return this.processList
     }
 
     find(id: number) {
@@ -24,7 +30,7 @@ export class ProcessService {
     }
 
     findByArrivalTime(timeArrive: number) {
-        return this.processList.find(process => process.timeArrive === timeArrive);
+        return this.processList.filter(process => process.timeArrive === timeArrive);
     }
 
     getProcessList() {
@@ -42,11 +48,11 @@ export class ProcessService {
         return process
     }
 
-    sortProcessList(type: SchedulerType) {
+    private sortProcessList(type: SchedulerType) {
         switch (type) {
             case SchedulerType.FCFS:
             case SchedulerType.SRTF:
-            case SchedulerType.ROUND_ROBIN:
+            case SchedulerType.RR:
                 return this.processList.sort((p1, p2) => p1.timeArrive - p2.timeArrive)
             case SchedulerType.SJN:
                 return this.processList.sort((p1, p2) => p1.burstTime - p2.burstTime)
