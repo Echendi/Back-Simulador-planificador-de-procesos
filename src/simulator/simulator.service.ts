@@ -3,6 +3,7 @@ import { CreateSimulationInput } from './dto/create-simulation.input';
 import { ProcessService } from '../process/process.service';
 import { SchedulerService } from '../scheduler/scheduler.service';
 import { Log } from '../scheduler/entities/log.entity';
+import { CreateProcessInput } from '../process/dto/create-process.input';
 
 @Injectable()
 export class SimulatorService {
@@ -11,23 +12,64 @@ export class SimulatorService {
     init(input: CreateSimulationInput) {
         this.scheduler.reset()
 
-        const { time, type, batchList } = input
-        let i = 0
+        const { time, type, enableBatchProcessing, processList, batchCount } = input
+        let clock = 0
         const logs: Log[] = []
 
-        for (const batch of batchList) {
-            this.scheduler.reset(false)
-            const processList = this.processService.setProcessList(batch.processList, type)
-            this.scheduler.setSheduler({ type, quantum: input.quantum, processList })
+        let batchList: Batch[] = [{ id: 1, processList }]
 
-            while (time ? i <= time : this.scheduler.numberOfCompletedProcesses() < processList.length) {
+        if (enableBatchProcessing && batchCount) batchList = createBatchList(processList, batchCount);
+
+        for (const batch of batchList) {
+            const batchProcessList = this.processService.setProcessList(batch.processList, type)
+            this.scheduler.setSheduler({ type, quantum: input.quantum, processList: batchProcessList })
+            const min = (batch.id - 1) * batchCount
+            const max = min + batchCount
+            let batchTime = enableBatchProcessing ? clock >= min && clock < max : true
+
+            while (time ? clock <= time && batchTime : batchTime) {
                 const log = this.scheduler.clockEvent();
-                if (batchList.length > 1)  log.batch = batch.id
+                if (enableBatchProcessing) log.batch = batch.id
                 logs.push(log);
-                if (time) i++;
+                batchTime = enableBatchProcessing ? clock >= min && clock < max : true
+                clock++;
             }
+        }
+
+        let endedProcess = 0;
+        while (time ? clock < time : endedProcess < processList.length) {
+            const log = this.scheduler.clockEvent();
+            logs.push(log);
+            clock++;
+            endedProcess = log.endQueue.length 
         }
 
         return logs
     }
+}
+
+const createBatchList = (processList: CreateProcessInput[], batchCount: number): Batch[] => {
+    const batches: Batch[] = [];
+    let batchId = 1;
+    let amount = 0
+    for (let i = 0; amount < processList.length; i += batchCount) {
+        const { min, max } = { min: i, max: (i + batchCount) }
+        let batchProcesses = [...processList.filter(process => process.timeArrive >= min && process.timeArrive < max)];
+        batchProcesses = batchProcesses.map(process => {
+            const { timeArrive, ...data } = process
+            return {
+                timeArrive: max,
+                ...data
+            }
+        })
+        batches.push({ id: batchId++, processList: batchProcesses });
+        amount += batchProcesses.length
+    }
+    return batches;
+};
+
+
+interface Batch {
+    id: number;
+    processList: CreateProcessInput[];
 }

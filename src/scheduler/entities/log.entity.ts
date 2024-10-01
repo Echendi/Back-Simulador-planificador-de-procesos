@@ -6,6 +6,7 @@ export class Log {
     cpuStatus: CpuStatus
     readyQueue: Process[] = []
     endQueue: Process[] = []
+    remainingQuantum: number
     toReadyProcess?: Process[] = []
     toRunningProcess?: Process
     toEndedProcess?: Process

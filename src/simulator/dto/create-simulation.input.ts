@@ -1,32 +1,8 @@
-import { ArrayMinSize, IsArray, IsEnum, IsIn, IsInt, IsOptional, IsPositive, ValidateNested } from 'class-validator';
+import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsPositive, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { SchedulerType } from '../../scheduler/entities/escheduler-type.enum';
 import { CreateProcessInput } from '../../process/dto/create-process.input';
 import { Type } from 'class-transformer';
-
-export class Batch {
-    @ApiProperty({
-        type: [CreateProcessInput],
-        description: 'Arreglo de procesos en este lote.',
-        example: [
-            { id: 1, timeArrive: 5, burstTime: 10 },
-            { id: 2, timeArrive: 6, burstTime: 8 }
-        ]
-    })
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested({ each: true })
-    @Type(() => CreateProcessInput)
-    processList: CreateProcessInput[];
-
-    @ApiProperty({
-        example: 1,
-        description: 'Identificador único del lote',
-    })
-    @IsInt()
-    @IsPositive()
-    id: number
-}
 
 
 export class CreateSimulationInput {
@@ -59,21 +35,34 @@ export class CreateSimulationInput {
     quantum: number
 
     @ApiProperty({
-        type: [Batch],
-        description: 'Arreglo de lotes, cada uno contiene una lista de procesos.',
+        type: [CreateProcessInput],
+        description: 'Arreglo de procesos.',
         example: [
-            {
-                processList: [
-                    { id: 1, timeArrive: 5, burstTime: 10 },
-                    { id: 2, timeArrive: 6, burstTime: 8 }
-                ]
-            }
+            { id: 1, timeArrive: 5, burstTime: 10 },
+            { id: 2, timeArrive: 6, burstTime: 8 }
         ]
     })
     @IsArray()
     @ArrayMinSize(1)
     @ValidateNested({ each: true })
-    @Type(() => Batch)
-    batchList: Batch[];
+    @Type(() => CreateProcessInput)
+    processList: CreateProcessInput[];
+
+    @ApiProperty({
+        description: 'Indica si se debe habilitar el procesamiento por lotes.',
+        example: true
+    })
+    @IsBoolean()
+    enableBatchProcessing: boolean = false;
+
+    @ApiProperty({
+        example: 5,
+        description: 'Lapso de tiempo para cada lote',
+        required: false
+    })
+    @IsPositive()
+    @IsInt()
+    @IsOptional()
+    batchCount?: number
 }
 

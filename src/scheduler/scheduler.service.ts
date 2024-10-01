@@ -10,7 +10,6 @@ import { Log } from './entities/log.entity'
 @Injectable()
 export class SchedulerService {
     private clock: number
-    private jumpTime: number
     private type: SchedulerType
     private quantum: number
     private remainingQuantum: number
@@ -23,11 +22,12 @@ export class SchedulerService {
         private readonly cpuService: CpuService,
     ) { }
 
-    reset(resetlock: boolean = true) {
+    reset() {
         this.readyQueue = []
         this.endedQueue = []
         this.remainingQuantum = this.quantum
-        if (resetlock) this.clock = 0
+        this.clock = 0
+        this.cpuService.release()
     }
 
     setSheduler(options: { type: SchedulerType, quantum?: number, processList?: Process[] }) {
@@ -96,6 +96,8 @@ export class SchedulerService {
     }
 
     clockEvent() {
+        this.currentLog.remainingQuantum = this.remainingQuantum
+
         if (this.type != SchedulerType.SJN) this.verifyNewProcess()
 
         if (this.cpuService.getStatus() == CpuStatus.IDLE) this.toRunning()
@@ -136,10 +138,6 @@ export class SchedulerService {
     verifyNewProcess() {
         const newProcessList = this.processService.findByArrivalTime(this.clock)
         if (newProcessList) newProcessList.map((newProcess) => this.toReady(newProcess))
-    }
-
-    nextClock() {
-        this.clock += this.jumpTime
     }
 
     numberOfCompletedProcesses() {
