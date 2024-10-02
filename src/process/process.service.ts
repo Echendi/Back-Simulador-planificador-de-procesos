@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { ProcessStatus } from './entities/process-status.enum';
 import { Process } from './entities/process.entity';
 import { SchedulerType } from '../scheduler/entities/escheduler-type.enum';
@@ -48,13 +48,23 @@ export class ProcessService {
         return process
     }
 
-    private sortProcessList(type: SchedulerType) {
+    private sortProcessList(type: SchedulerType, isBatch: boolean = false) {
         switch (type) {
             case SchedulerType.FCFS:
             case SchedulerType.SRTF:
             case SchedulerType.RR:
                 return this.processList.sort((p1, p2) => p1.timeArrive - p2.timeArrive)
             case SchedulerType.SJN:
+
+                if (!isBatch) {
+                    this.processList = this.processList.map(process => {
+                        const { timeArrive, ...data } = process
+                        return {
+                            timeArrive: 0,
+                            ...data
+                        }
+                    })
+                }
                 return this.processList.sort((p1, p2) => p1.burstTime - p2.burstTime)
             default:
                 throw new InternalServerErrorException(`No se a establecido un algoritmo de planificación`)

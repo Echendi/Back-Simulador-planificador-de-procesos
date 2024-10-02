@@ -4,6 +4,8 @@ import { ProcessService } from '../process/process.service';
 import { SchedulerService } from '../scheduler/scheduler.service';
 import { Log } from '../scheduler/entities/log.entity';
 import { CreateProcessInput } from '../process/dto/create-process.input';
+import { CreateRandomSimulationInput } from './dto/create-random-simulation.input';
+import { Batch } from './entities/Batch.interface';
 
 @Injectable()
 export class SimulatorService {
@@ -41,10 +43,23 @@ export class SimulatorService {
             const log = this.scheduler.clockEvent();
             logs.push(log);
             clock++;
-            endedProcess = log.endQueue.length 
+            endedProcess = log.endQueue.length
         }
 
         return logs
+    }
+
+    initRandom(input: CreateRandomSimulationInput) {
+        const { processAmount, maxArrivalTime, maxBurstTime, minBurstTime, ...data } = input
+        const processList: CreateProcessInput[] = []
+        let id = 1
+        for (let i = 0; i < processAmount; i++, id++) {
+            const timeArrive = randomIntInRange(0, maxArrivalTime)
+            const burstTime = randomIntInRange(minBurstTime, maxBurstTime)
+            processList.push({ id, timeArrive, burstTime })
+        }
+
+        return this.init({ processList, ...data })
     }
 }
 
@@ -68,8 +83,6 @@ const createBatchList = (processList: CreateProcessInput[], batchCount: number):
     return batches;
 };
 
-
-interface Batch {
-    id: number;
-    processList: CreateProcessInput[];
+function randomIntInRange(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }

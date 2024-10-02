@@ -1,11 +1,40 @@
-import { ArrayMinSize, IsArray, IsBoolean, IsEnum, IsIn, IsInt, IsOptional, IsPositive, ValidateNested } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
-import { SchedulerType } from '../../scheduler/entities/escheduler-type.enum';
-import { CreateProcessInput } from '../../process/dto/create-process.input';
-import { Type } from 'class-transformer';
+import { ApiProperty } from "@nestjs/swagger"
+import { IsBoolean, IsEnum, IsInt, IsOptional, IsPositive } from "class-validator"
+import { SchedulerType } from "../../scheduler/entities/escheduler-type.enum"
 
+export class CreateRandomSimulationInput {
+    @ApiProperty({
+        description: 'Cantidad de procesos a simular',
+        example: 5
+    })
+    @IsInt()
+    @IsPositive()
+    processAmount: number
+    
+    @ApiProperty({
+        description: 'Tiempo de reloj máximo para la llegada de los procesos',
+        example: 20
+    })
+    @IsInt()
+    @IsPositive()
+    maxArrivalTime: number
+    
+    @ApiProperty({
+        description: 'Tiempo de ráfaga mínimo para cada proceso',
+        example: 1
+    })
+    @IsInt()
+    @IsPositive()
+    minBurstTime: number
+    
+    @ApiProperty({
+        description: 'Tiempo de ráfaga máximo para cada proceso',
+        example: 10
+    })
+    @IsInt()
+    @IsPositive()
+    maxBurstTime: number
 
-export class CreateSimulationInput {
     @ApiProperty({
         example: 10,
         description: 'Tiempo total de simulación en unidades de tiempo. Si no se pone este valor se  detentrá cundo termine todos los procesos',
@@ -35,20 +64,6 @@ export class CreateSimulationInput {
     quantum?: number
 
     @ApiProperty({
-        type: [CreateProcessInput],
-        description: 'Arreglo de procesos.',
-        example: [
-            { id: 1, timeArrive: 5, burstTime: 10 },
-            { id: 2, timeArrive: 6, burstTime: 8 }
-        ]
-    })
-    @IsArray()
-    @ArrayMinSize(1)
-    @ValidateNested({ each: true })
-    @Type(() => CreateProcessInput)
-    processList: CreateProcessInput[];
-
-    @ApiProperty({
         description: 'Indica si se debe habilitar el procesamiento por lotes.',
         example: true
     })
@@ -65,4 +80,3 @@ export class CreateSimulationInput {
     @IsOptional()
     batchCount?: number
 }
-
